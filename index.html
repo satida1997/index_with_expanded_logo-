@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Sarabun Font for Thai -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            /* Global responsive font size */
+            font-size: 1rem; /* Base size for mobile (16px) */
+        }
+        @media (min-width: 640px) { /* sm breakpoint */
+            body {
+                font-size: 1.05rem; /* Slightly larger on sm screens */
+            }
+        }
+        @media (min-width: 768px) { /* md breakpoint */
+            body {
+                font-size: 1.125rem; /* text-lg (18px) on md screens and up */
+            }
+        }
+
+        /* Sticky header */
+        .header-sticky {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        /* Floating cart button - Adjusted for full width and larger size */
+        .floating-cart {
+            position: fixed;
+            bottom: 0; /* Align to the very bottom */
+            left: 0; /* Align to the very left */
+            width: 100%; /* Full width */
+            z-index: 200; /* Higher z-index to ensure it's on top */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.25rem 1.5rem; /* py-5 px-6 - Increased padding for larger touch target */
+            border-radius: 0; /* Remove rounded corners to make it a full strip */
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2); /* Shadow on top */
+            transition: all 0.3s ease;
+            font-size: 1.5rem; /* text-2xl - Larger font size */
+            font-weight: bold; /* Make text bolder */
+            color: white;
+            background-color: #2563eb; /* blue-600 */
+        }
+        .floating-cart:hover {
+            transform: none; /* No transform on hover for full width strip */
+            background-color: #1d4ed8; /* blue-700 */
+            box-shadow: 0 -6px 15px rgba(0, 0, 0, 0.3);
+        }
+        .floating-cart .item-count {
+            background-color: #ef4444; /* red-500 */
+            color: white;
+            font-size: 1rem; /* text-base - Adjusted for visibility */
+            padding: 4px 10px; /* More padding for badge */
+            border-radius: 9999px;
+            position: absolute;
+            top: 5px; /* Adjust position */
+            right: 5px; /* Adjust position */
+            display: none; /* Hidden by default */
+        }
+        .floating-cart.has-items .item-count {
+            display: block; /* Show when items are present */
+        }
+        
+        /* Image container for 16:9 aspect ratio */
+        .item-card-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 9 / 16 = 0.5625 */
+            overflow: hidden; /* Ensures rounded corners work correctly */
+        }
+
+        .item-card-container img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Fills the container while maintaining aspect ratio */
+            cursor: pointer; /* Indicate it's clickable */
+        }
+
+        /* Active filter button style */
+        .filter-button.active {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Custom style for SweetAlert2 image preview - Adjusted max-height and padding */
+        .swal2-image-custom {
+            max-width: 60vw !important; /* Increased width limit to 60% of viewport width */
+            max-height: 90vh !important; /* Increased height limit to allow for larger image */
+            object-fit: contain !important; /* Ensure image fits within bounds without cropping */
+            padding: 0 !important; /* Remove padding to maximize image space */
+            box-sizing: border-box; /* Include padding in the element's total width and height */
+        }
+
+        /* Custom SweetAlert2 Button Styles */
+        .swal2-confirm-button-custom {
+            background-color: #22c55e !important; /* green-500 */
+            color: white !important;
+            font-weight: 600 !important; /* font-semibold */
+            padding: 0.75rem 1.5rem !important; /* py-3 px-6 */
+            border-radius: 9999px !important; /* rounded-full */
+            transition: background-color 0.2s ease-in-out !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional: add shadow */
+            margin: 0.5rem; /* Ensure spacing between buttons */
+            font-size: 1.125rem !important; /* text-lg */
+        }
+        .swal2-confirm-button-custom:hover {
+            background-color: #16a34a !important; /* green-600 */
+        }
+
+        .swal2-cancel-button-custom {
+            background-color: #9ca3af !important; /* gray-400 */
+            color: white !important;
+            font-weight: 600 !important; /* font-semibold */
+            padding: 0.75rem 1.5rem !important; /* py-3 px-6 */
+            border-radius: 9999px !important; /* rounded-full */
+            transition: background-color 0.2s ease-in-out !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional: add shadow */
+            margin: 0.5rem; /* Ensure spacing between buttons */
+            font-size: 1.125rem !important; /* text-lg */
+        }
+        .swal2-cancel-button-custom:hover {
+            background-color: #6b7280 !important; /* gray-500 */
+        }
+        
+        /* Ensure buttons are arranged nicely, especially on mobile */
+        .swal2-actions {
+            flex-wrap: wrap; /* Allow buttons to wrap to next line on small screens */
+            justify-content: center; /* Center buttons */
+            gap: 1rem; /* Space between buttons */
+            padding-top: 1rem; /* Space above buttons */
+        }
+
+        /* SweetAlert2 Modal specific adjustments for mobile */
+        .swal2-popup-custom {
+            width: 95% !important; /* Take up more width on small screens */
+            max-width: 95% !important; /* Override any max-width */
+        }
+        @media (min-width: 640px) { /* sm breakpoint */
+            .swal2-popup-custom {
+                width: 100% !important;
+                max-width: 40rem !important; /* Revert to max-w-lg or sm:max-w-xl */
+            }
+        }
+        @media (min-width: 768px) { /* md breakpoint */
+            .swal2-popup-custom {
+                max-width: 48rem !important; /* Revert to max-w-xl for checkout modal */
+            }
+        }
+
+        /* Custom scrollbar hide for horizontal gallery */
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;  /* Chrome, Safari, Opera */
+        }
+    </style>
+</head>
+<!-- Adjusted body padding-bottom for larger floating cart -->
+<body class="bg-gray-100 min-h-screen pb-32 text-base md:text-lg"> 
+
+    <!-- Header Section with Navigation -->
+
+<header class="header-sticky bg-white shadow-md p-4 flex justify-center items-center px-4 md:px-8">
+    <img src="https://i.postimg.cc/sgrzrM9t/S-2637831.jpg" alt="โลโก้ร้านกระแกร่ง" class="h-26 sm:h-29 md:h-33 object-contain">
+</header>
+
+
+    <div class="container mx-auto p-4 md:p-8 pt-10">
+        <div class="text-center mb-10">
+            <h2 class="text-2xl md:text-3xl font-semibold text-gray-700">เมนูอาหารและเครื่องดื่ม</h2>
+            <p class="text-gray-500 mt-2">เลือกเมนูโปรดของคุณ แล้วกดเพิ่มลงตะกร้า</p>
+        </div>
+
+        <!-- Search Bar - Adjusted padding for input and buttons -->
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-3 mb-8">
+            <div class="relative w-full max-w-md">
+                <input type="text" id="searchInput" placeholder="ค้นหาเมนู..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:ring-blue-500 focus:border-blue-500 shadow-sm text-base">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <button id="clearSearchBtn" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none" style="display:none;">
+                    <i class="fas fa-times-circle text-xl"></i>
+                </button>
+            </div>
+            <!-- ปุ่มค้นหา (เผื่อมีคนอยากกดหลังจากพิมพ์เสร็จ) -->
+            <button id="searchButton" class="px-5 py-3 rounded-full bg-blue-600 text-white font-medium hover:bg-blue-700 transition duration-200 w-full sm:w-auto text-base">
+                ค้นหา
+            </button>
+        </div>
+
+        <!-- Category Filter Buttons - Adjusted padding and font size -->
+        <div class="flex flex-wrap justify-center gap-3 mb-8">
+            <button class="filter-button px-5 py-3 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition duration-200 active text-base sm:text-lg" data-category="all">ทั้งหมด</button>
+            <button class="filter-button px-5 py-3 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition duration-200 text-base sm:text-lg" data-category="อาหารจานเดียว">อาหารจานเดียว</button>
+            <button class="filter-button px-5 py-3 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition duration-200 text-base sm:text-lg" data-category="เครื่องดื่ม">เครื่องดื่ม</button>
+            <button class="filter-button px-5 py-3 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition duration-200 text-base sm:text-lg" data-category="ของหวาน">ของหวาน</button>
+            <!-- Add more category buttons here as needed -->
+        </div>
+
+        <!-- Menu Items Grid - Changed to grid-cols-1 for single column layout on all screens -->
+        <div id="menu-items-container" class="grid grid-cols-1 gap-6">
+            <!-- Menu items will be dynamically loaded here by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Floating Cart Button - Adjusted for full width and larger size -->
+    <button id="floatingCartBtn" class="floating-cart bg-blue-600 text-white font-bold hover:bg-blue-700 transition duration-300 transform scale-100 hover:scale-105" onclick="showCartModal()">
+        <i class="fas fa-shopping-cart mr-3 text-3xl"></i> <!-- Increased icon size to text-3xl and adjusted margin -->
+        <span id="cartItemCount" class="item-count">0</span>
+        ตะกร้า <span id="cartTotalPrice">0</span> บาท
+    </button>
+
+    <script>
+        // *** สำคัญมาก: เปลี่ยน URL นี้เป็น URL ของ Google Apps Script Web App ของคุณ ***
+        // ให้ทำตามขั้นตอน 'การ Deploy Google Apps Script Web App ของคุณ' ด้านล่าง
+        const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzAX7BoX-X--9qor7C_4FN3E-dmpRwnBPkDBe0tV6lBXnzd9pUtST-9dgqqHjtP94us/exec"; // <-- URL ใหม่ที่อัปเดตแล้ว
+
+        // Data for menu items, now with categories
+        const menuItems = [
+            {
+                id: 1,
+                name: "กระเพราหมูกรอบ",
+                description: "แซ่บนัวร์ชัวร์จ๊ะ",
+                price: 60,
+                image: "https://i.postimg.cc/rFzmgKrT/image.jpg",
+                category: "อาหารจานเดียว"
+            },
+            {
+                id: 2,
+                name: "ผัดไทยกุ้งสด",
+                description: "สูตรแม่กุ้งแซ่บระเบิด",
+                price: 50,
+                image: "https://i.postimg.cc/qMXTsrmr/image.jpg",
+                category: "อาหารจานเดียว"
+            },
+            {
+                id: 3,
+                name: "ข้าวหมูทอด",
+                description: "สูตรแม่คุณพรเจ้าเก่า",
+                price: 55,
+                image: "https://i.postimg.cc/NG2GrWqG/image.jpg",
+                category: "อาหารจานเดียว"
+            },
+            {
+                id: 4,
+                name: "ข้าวผัดกุ้ง",
+                description: "สูตรแม่คุณพรหมู่4",
+                price: 65,
+                image: "https://i.postimg.cc/k4tCKmbQ/image.jpg",
+                category: "อาหารจานเดียว"
+            },
+            {
+                id: 5,
+                name: "สุกี้ทะเล",
+                description: "สูตรแม่แตง comfirm",
+                price: 70,
+                image: "https://i.postimg.cc/0yWhnyDT/image.jpg",
+                category: "อาหารจานเดียว"
+            },
+            {
+                id: 6,
+                name: "ชาเขียวเย็น",
+                description: "7-11",
+                price: 30,
+                image: "https://i.postimg.cc/nhPw7wtZ/image.jpg",
+                category: "เครื่องดื่ม"
+            },
+            {
+                id: 7,
+                name: "โค้ก",
+                description: "7-11",
+                price: 25,
+                image: "https://i.postimg.cc/C5SvY3bC/coke.webp",
+                category: "เครื่องดื่ม"
+            },
+            {
+                id: 8,
+                name: "น้ำเปล่า",
+                description: "crytal",
+                price: 15,
+                image: "https://i.postimg.cc/RF6RmM3n/crystal.jpg",
+                category: "เครื่องดื่ม"
+            },
+            {
+                id: 9,
+                name: "ขนมไทย",
+                description: "หอมหวานชื่นใจ",
+                price: 159,
+                image: "https://i.postimg.cc/bvPKBY1k/image.jpg",
+                category: "ของหวาน"
+            },
+            {
+                id: 10,
+                name: "ข้าวเหนียวมูน",
+                description: "ข้าวเหนียวมูนนุ่มๆ หอมกะทิ",
+                price: 99,
+                image: "https://i.postimg.cc/yYmqXSZs/image.jpg", 
+                category: "ของหวาน"
+            }
+        ];
+
+        let cart = []; // Array to store items in the cart: { id, name, price, quantity }
+
+        // Get DOM elements
+        const menuItemsContainer = document.getElementById('menu-items-container');
+        const floatingCartBtn = document.getElementById('floatingCartBtn');
+        const cartItemCount = document.getElementById('cartItemCount'); // For floating button
+        const cartTotalPrice = document.getElementById('cartTotalPrice');
+        const filterButtons = document.querySelectorAll('.filter-button');
+        const headerCartItemCount = document.getElementById('headerCartItemCount'); // New element for header cart
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+        // Variables to keep track of current filters
+        let currentCategory = 'all';
+        let currentSearchQuery = '';
+
+        /**
+         * Renders menu items dynamically into the DOM, filtered by category and search query.
+         * @param {string} category - The category to filter by ('all' for all items).
+         * @param {string} query - The search query string.
+         */
+        function renderMenuItems(category = 'all', query = '') {
+            menuItemsContainer.innerHTML = ''; // Clear existing items
+
+            const lowerCaseQuery = query.toLowerCase().trim();
+
+            const filteredItems = menuItems.filter(item => {
+                const matchesCategory = (category === 'all' || item.category === category);
+                const matchesSearch = item.name.toLowerCase().includes(lowerCaseQuery) ||
+                                            item.description.toLowerCase().includes(lowerCaseQuery);
+                return matchesCategory && matchesSearch;
+            });
+
+            if (filteredItems.length === 0) {
+                menuItemsContainer.innerHTML = `
+                    <div class="col-span-full text-center text-gray-500 text-lg py-10">
+                        ไม่พบเมนูที่ตรงกับการค้นหาของคุณ
+                    </div>
+                `;
+                return;
+            }
+
+            filteredItems.forEach(item => {
+                const itemCard = document.createElement('div');
+                itemCard.className = 'bg-white rounded-xl shadow-md p-4 flex flex-col justify-between items-center text-center transform hover:scale-105 transition duration-300 ease-in-out cursor-pointer';
+                itemCard.innerHTML = `
+                    <div class="item-card-container rounded-lg mb-3">
+                        <img src="${item.image}" alt="${item.name}" class="rounded-lg" onclick="showImagePreview('${item.image}', '${item.name}')">
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-800">${item.name}</h3>
+                    <p class="text-base text-gray-600 mb-2 line-clamp-2">${item.description}</p>
+                    <span class="text-xl font-bold text-blue-600 mt-auto">${item.price} บาท</span>
+                    <button data-item-id="${item.id}" class="add-to-cart-btn mt-4 w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-lg transition duration-200 text-lg">
+                        <i class="fas fa-cart-plus mr-2 text-2xl"></i>เพิ่มลงตะกร้า
+                    </button>
+                `;
+                menuItemsContainer.appendChild(itemCard);
+            });
+
+            // Attach event listeners to "Add to Cart" buttons for newly rendered items
+            document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const itemId = parseInt(event.currentTarget.dataset.itemId);
+                    addItemToCart(itemId);
+                });
+            });
+        }
+
+        /**
+         * Shows a SweetAlert2 modal with a larger version of the image.
+         * @param {string} imageUrl - The URL of the image to display.
+         * @param {string} imageName - The name of the item for the modal title.
+         */
+        function showImagePreview(imageUrl, imageName) {
+            Swal.fire({
+                title: imageName,
+                imageUrl: imageUrl,
+                imageAlt: imageName,
+                imageClass: 'swal2-image-custom', // Apply custom CSS class for sizing
+                confirmButtonText: 'ปิด',
+                backdrop: true, // Enable backdrop to dim background
+            });
+        }
+
+
+        /**
+         * Adds an item to the cart or increments its quantity.
+         * @param {number} itemId - The ID of the item to add.
+         */
+        function addItemToCart(itemId) {
+            const selectedItem = menuItems.find(item => item.id === itemId);
+            if (selectedItem) {
+                const existingItem = cart.find(item => item.id === itemId);
+                if (existingItem) {
+                    existingItem.quantity++;
+                } else {
+                    cart.push({ ...selectedItem, quantity: 1 });
+                }
+                updateCartDisplay();
+                Swal.fire({
+                    toast: true,
+                    position: 'bottom-end',
+                    icon: 'success',
+                    title: `${selectedItem.name} เพิ่มลงตะกร้าแล้ว`,
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            }
+        }
+
+        /**
+         * Removes an item from the cart.
+         * @param {number} itemId - The ID of the item to remove.
+         */
+        function removeItemFromCart(itemId) {
+            cart = cart.filter(item => item.id !== itemId);
+            updateCartDisplay();
+            // Re-render cart modal if it's open
+            if (Swal.isVisible() && Swal.getHtmlContainer().id === 'swal2-html-container') {
+                showCartModal();
+            }
+        }
+
+        /**
+         * Updates the quantity of an item in the cart.
+         * @param {number} itemId - The ID of the item to update.
+         * @param {number} newQuantity - The new quantity.
+         */
+        function updateCartItemQuantity(itemId, newQuantity) {
+            const itemToUpdate = cart.find(item => item.id === itemId);
+            if (itemToUpdate) {
+                if (newQuantity <= 0) {
+                    removeItemFromCart(itemId);
+                } else {
+                    itemToUpdate.quantity = newQuantity;
+                }
+                updateCartDisplay();
+                // Re-render cart modal if it's open
+                if (Swal.isVisible() && Swal.getHtmlContainer().id === 'swal2-html-container') {
+                    showCartModal();
+                }
+            }
+        }
+
+        /**
+         * Calculates total items and total price in the cart and updates the floating button AND header cart button.
+         */
+        function updateCartDisplay() {
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            // Update floating cart button
+            cartItemCount.textContent = totalItems;
+            cartTotalPrice.textContent = totalPrice;
+            if (totalItems > 0) {
+                floatingCartBtn.classList.add('has-items');
+            } else {
+                floatingCartBtn.classList.remove('has-items');
+            }
+
+            // Update header cart button
+            if (headerCartItemCount) { 
+                headerCartItemCount.textContent = totalItems;
+                if (totalItems > 0) {
+                    headerCartItemCount.style.display = 'inline-block';
+                } else {
+                    headerCartItemCount.style.display = 'none';
+                }
+            }
+        }
+
+        /**
+         * Displays the detailed cart contents in a SweetAlert2 modal.
+         */
+        async function showCartModal() {
+            if (cart.length === 0) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'ตะกร้าว่างเปล่า',
+                    text: 'กรุณาเพิ่มรายการอาหารก่อนดำเนินการต่อ',
+                    confirmButtonText: 'ตกลง'
+                });
+                return;
+            }
+
+            const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            // Generate HTML for cart items
+            const cartItemsHtml = cart.map(item => `
+                <div class="flex items-center justify-between p-2 border-b border-gray-200 last:border-b-0">
+                    <div class="flex-1">
+                        <span class="font-semibold text-gray-800">${item.name}</span>
+                        <span class="text-gray-600 text-sm ml-2">${item.price} บาท/ชิ้น</span>
+                    </div>
+                    <div class="flex items-center">
+                        <button onclick="updateCartItemQuantity(${item.id}, ${item.quantity - 1})" class="bg-gray-200 text-gray-700 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition duration-150 text-xl">-</button>
+                        <span class="mx-2 text-lg font-medium">${item.quantity}</span>
+                        <button onclick="updateCartItemQuantity(${item.id}, ${item.quantity + 1})" class="bg-gray-200 text-gray-700 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition duration-150 text-xl">+</button>
+                        <button onclick="removeItemFromCart(${item.id})" class="ml-3 text-red-500 hover:text-red-700 transition duration-150" title="ลบออกจากตะกร้า">
+                            <i class="fas fa-trash-alt text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            const { value: formValues } = await Swal.fire({
+                title: 'ตะกร้าสินค้า',
+                html: `
+                    <div id="swal2-html-container" class="text-left max-h-80 overflow-y-auto custom-scrollbar">${cartItemsHtml}</div>
+                    <div class="text-right text-2xl font-bold mt-4 text-gray-800">
+                        รวมทั้งหมด: <span class="text-blue-600">${totalPrice}</span> บาท
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-arrow-right mr-2 text-xl"></i>ดำเนินการสั่งซื้อ', // Added icon
+                cancelButtonText: '<i class="fas fa-arrow-left mr-2 text-xl"></i>กลับ', // Added icon
+                focusConfirm: false,
+                customClass: {
+                    container: 'swal2-container-custom',
+                    popup: 'swal2-popup-custom w-full max-w-lg', // Adjust max-width as needed
+                    confirmButton: 'swal2-confirm-button-custom', // Custom class for styling
+                    cancelButton: 'swal2-cancel-button-custom' // Custom class for styling
+                },
+                buttonsStyling: false, // Disable default SweetAlert2 button styling
+                didRender: () => {
+                    // Re-attach event listeners for quantity buttons as they are part of the modal HTML
+                    // These are already handled by `onclick` attributes in the HTML string, but good practice for dynamic content
+                }
+            });
+
+            if (formValues) { // If user clicked "ดำเนินการสั่งซื้อ"
+                showCheckoutModal(cart, totalPrice);
+            }
+        }
+
+        /**
+         * Displays a SweetAlert2 modal for customer details and order confirmation.
+         * @param {Array} cartItems - The items currently in the cart.
+         * @param {number} totalPrice - The total price of items in the cart.
+         */
+        async function showCheckoutModal(cartItems, totalPrice) {
+            const { value: formValues } = await Swal.fire({
+                title: 'ข้อมูลลูกค้าเพื่อจัดส่ง',
+                html: `
+                    <div class="text-left">
+                        <label for="swal-customerName" class="block text-base font-medium text-gray-700 mt-2">ชื่อลูกค้า <span class="text-red-500">*</span></label>
+                        <input id="swal-customerName" class="swal2-input bg-gray-50 border border-gray-300 text-lg rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="ชื่อ-สกุล" required>
+                        
+                        <label class="block text-base font-medium text-gray-700 mt-4 mb-2">วิธีการรับสินค้า <span class="text-red-500">*</span></label>
+                        <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4">
+                            <label class="inline-flex items-center text-lg">
+                                <input type="radio" name="deliveryMethod" value="dinein" checked class="form-radio text-blue-600 h-5 w-5" id="radio-dinein">
+                                <span class="ml-2 text-gray-800">ทานที่ร้าน</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="deliveryMethod" value="takeaway" class="form-radio text-blue-600 h-5 w-5" id="radio-takeaway">
+                                <span class="ml-2 text-gray-800">สั่งกลับบ้าน</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="deliveryMethod" value="delivery" class="form-radio text-blue-600 h-5 w-5" id="radio-delivery">
+                                <span class="ml-2 text-gray-800">จัดส่ง</span>
+                            </label>
+                        </div>
+
+                        <div id="pickupTimeGroup" style="display: none;"> 
+                            <label for="swal-pickupTime" class="block text-base font-medium text-gray-700 mt-4">เวลารับสินค้า <span class="text-red-500">*</span></label>
+                            <input type="time" id="swal-pickupTime" class="swal2-input bg-gray-50 border border-gray-300 text-lg rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                        </div>
+
+                        <div id="deliveryAddressGroup" style="display: none;"> 
+                            <label for="swal-deliveryAddress" class="block text-base font-medium text-gray-700 mt-4">ที่อยู่จัดส่ง / โต๊ะที่ <span class="text-red-500">*</span></label>
+                            <textarea id="swal-deliveryAddress" class="swal2-textarea bg-gray-50 border border-gray-300 text-lg rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" rows="3" placeholder="ระบุโต๊ะที่ (สำหรับทานที่ร้าน) หรือ บ้านเลขที่, ถนน, แขวง, เขต, จังหวัด, รหัสไปรษณีย์ (สำหรับจัดส่ง)"></textarea>
+                        </div>
+                        
+                        <label for="swal-phone" class="block text-base font-medium text-gray-700 mt-4">เบอร์โทรศัพท์ <span class="text-red-500">*</span></label>
+                        <input id="swal-phone" type="tel" class="swal2-input bg-gray-50 border border-gray-300 text-lg rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="08XXXXXXXX" required>
+                        
+                        <label for="swal-notes" class="block text-base font-medium text-gray-700 mt-4">หมายเหตุเพิ่มเติม (ไม่บังคับ)</label>
+                        <textarea id="swal-notes" class="swal2-textarea bg-gray-50 border border-gray-300 text-lg rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" rows="2" placeholder="ไม่ใส่ผักชี, หวานน้อย, อื่นๆ..."></textarea>
+                    </div>
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-check-circle mr-2 text-xl"></i>ยืนยันและส่งคำสั่งซื้อ', // Added icon
+                cancelButtonText: '<i class="fas fa-times-circle mr-2 text-xl"></i>ยกเลิก', // Added icon
+                customClass: {
+                    container: 'swal2-container-custom',
+                    popup: 'swal2-popup-custom max-w-xl md:max-w-2xl', // Adjust max-width for checkout modal
+                    confirmButton: 'swal2-confirm-button-custom',
+                    cancelButton: 'swal2-cancel-button-custom'
+                },
+                buttonsStyling: false,
+                preConfirm: () => {
+                    const customerName = Swal.getPopup().querySelector('#swal-customerName').value;
+                    const deliveryMethod = Swal.getPopup().querySelector('input[name="deliveryMethod"]:checked').value;
+                    const deliveryAddressInput = Swal.getPopup().querySelector('#swal-deliveryAddress');
+                    const deliveryAddress = deliveryAddressInput ? deliveryAddressInput.value : ''; // Check if element exists
+                    const pickupTimeInput = Swal.getPopup().querySelector('#swal-pickupTime');
+                    const pickupTime = pickupTimeInput ? pickupTimeInput.value : ''; // Check if element exists
+                    const phone = Swal.getPopup().querySelector('#swal-phone').value;
+                    const notes = Swal.getPopup().querySelector('#swal-notes').value;
+
+                    // Basic validation
+                    if (!customerName || !phone) {
+                        Swal.showValidationMessage('กรุณากรอกชื่อลูกค้าและเบอร์โทรศัพท์');
+                        return false;
+                    }
+
+                    if (deliveryMethod === 'takeaway' && !pickupTime) {
+                        Swal.showValidationMessage('กรุณาระบุเวลารับสินค้าสำหรับ "สั่งกลับบ้าน"');
+                        return false;
+                    }
+                    if (deliveryMethod === 'delivery' && !deliveryAddress) {
+                        Swal.showValidationMessage('กรุณาระบุที่อยู่จัดส่งสำหรับ "จัดส่ง"');
+                        return false;
+                    }
+                     if (deliveryMethod === 'dinein' && !deliveryAddress) {
+                        Swal.showValidationMessage('กรุณาระบุโต๊ะที่สำหรับ "ทานที่ร้าน"');
+                        return false;
+                    }
+
+                    if (cartItems.length === 0) { // Should not happen if coming from showCartModal, but good safeguard
+                        Swal.showValidationMessage('ตะกร้าสินค้าว่างเปล่า กรุณาเพิ่มสินค้า');
+                        return false;
+                    }
+
+                    return { customerName, deliveryMethod, deliveryAddress, pickupTime, phone, notes, cartItems, totalPrice };
+                },
+                didOpen: () => {
+                    const deliveryMethodRadios = Swal.getPopup().querySelectorAll('input[name="deliveryMethod"]');
+                    const deliveryAddressGroup = Swal.getPopup().querySelector('#deliveryAddressGroup');
+                    const swalDeliveryAddress = Swal.getPopup().querySelector('#swal-deliveryAddress');
+                    const pickupTimeGroup = Swal.getPopup().querySelector('#pickupTimeGroup');
+                    const swalPickupTime = Swal.getPopup().querySelector('#swal-pickupTime');
+
+                    // Function to toggle fields visibility and required status based on selected delivery method
+                    const toggleFields = () => {
+                        const selectedMethod = Swal.getPopup().querySelector('input[name="deliveryMethod"]:checked').value;
+                        
+                        // Hide all conditional fields initially
+                        pickupTimeGroup.style.display = 'none';
+                        swalPickupTime.removeAttribute('required');
+                        deliveryAddressGroup.style.display = 'none';
+                        swalDeliveryAddress.removeAttribute('required');
+
+                        if (selectedMethod === 'dinein') {
+                            deliveryAddressGroup.style.display = 'block';
+                            swalDeliveryAddress.placeholder = 'ระบุโต๊ะที่';
+                            swalDeliveryAddress.setAttribute('required', 'true');
+                        } else if (selectedMethod === 'takeaway') {
+                            pickupTimeGroup.style.display = 'block';
+                            swalPickupTime.setAttribute('required', 'true');
+                            // Delivery address is optional for takeaway, but can be used for notes if desired
+                            swalDeliveryAddress.placeholder = 'ที่อยู่ร้านค้า (ถ้าจะระบุ)'; 
+                        } else if (selectedMethod === 'delivery') {
+                            deliveryAddressGroup.style.display = 'block';
+                            swalDeliveryAddress.placeholder = 'บ้านเลขที่, ถนน, แขวง, เขต, จังหวัด, รหัสไปรษณีย์';
+                            swalDeliveryAddress.setAttribute('required', 'true');
+                        }
+                    };
+
+                    // Attach change listeners to delivery method radios
+                    deliveryMethodRadios.forEach(radio => {
+                        radio.addEventListener('change', toggleFields);
+                    });
+
+                    // Initial call to set correct visibility based on default checked radio (dinein is default)
+                    toggleFields();
+                }
+            });
+
+            if (formValues) {
+                // User confirmed the order, proceed to send data
+                sendOrderToGoogleSheet(formValues);
+            }
+        }
+
+        /**
+         * Sends order data to the Google Apps Script Web App.
+         * @param {object} orderData - The collected order data.
+         */
+        async function sendOrderToGoogleSheet(orderData) {
+            Swal.fire({
+                title: 'กำลังส่งคำสั่งซื้อ...',
+                text: 'กรุณารอสักครู่',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                // Ensure the URL is correctly set
+                if (APPS_SCRIPT_WEB_APP_URL === "YOUR_APPS_SCRIPT_WEB_APP_URL_HERE" || !APPS_SCRIPT_WEB_APP_URL) {
+                    throw new Error("APPS_SCRIPT_WEB_APP_URL is not configured. Please update it in the JavaScript code.");
+                }
+
+                const response = await fetch(APPS_SCRIPT_WEB_APP_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    mode: 'no-cors', // IMPORTANT: Added no-cors mode to bypass CORS issues.
+                                     // Note: In 'no-cors' mode, the response is opaque,
+                                     // meaning you cannot read response.json() or check status codes.
+                                     // We will assume success if the fetch completes without a network error.
+                    body: JSON.stringify(orderData)
+                });
+
+                // Since we are using 'no-cors' mode, we cannot reliably read the response.
+                // We'll optimistically assume success if the fetch operation itself did not throw a network error.
+                // The actual success/failure of data saving happens on the Apps Script side.
+                Swal.fire({
+                    icon: 'success',
+                    title: 'สั่งซื้อสำเร็จ!',
+                    text: 'คำสั่งซื้อของคุณถูกส่งไปยังระบบแล้ว กรุณารอสักครู่เพื่อยืนยันการบันทึก.',
+                    confirmButtonText: 'ตกลง',
+                    customClass: { confirmButton: 'swal2-confirm-button-custom' },
+                    buttonsStyling: false
+                });
+                cart = []; // Clear the cart after sending the order
+                updateCartDisplay(); // Update UI
+
+            } catch (error) {
+                console.error("Error submitting order:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาดในการส่งคำสั่งซื้อ!',
+                    text: `ไม่สามารถส่งคำสั่งซื้อได้: ${error.message} โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือลองอีกครั้ง.`,
+                    confirmButtonText: 'ตกลง',
+                    customClass: { confirmButton: 'swal2-confirm-button-custom' },
+                    buttonsStyling: false
+                });
+            }
+        }
+
+
+        // Event Listeners
+
+        // Filter buttons
+        filterButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                filterButtons.forEach(btn => btn.classList.remove('active')); // Remove active from all
+                event.currentTarget.classList.add('active'); // Add active to clicked button
+                currentCategory = event.currentTarget.dataset.category;
+                renderMenuItems(currentCategory, currentSearchQuery);
+            });
+        });
+
+        // Search input and button
+        searchInput.addEventListener('input', () => {
+            currentSearchQuery = searchInput.value;
+            renderMenuItems(currentCategory, currentSearchQuery);
+            if (currentSearchQuery.length > 0) {
+                clearSearchBtn.style.display = 'block';
+            } else {
+                clearSearchBtn.style.display = 'none';
+            }
+        });
+
+        searchButton.addEventListener('click', () => {
+            currentSearchQuery = searchInput.value;
+            renderMenuItems(currentCategory, currentSearchQuery);
+        });
+
+        clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            currentSearchQuery = '';
+            clearSearchBtn.style.display = 'none';
+            renderMenuItems(currentCategory, currentSearchQuery);
+        });
+
+
+        // Initial render on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenuItems(currentCategory, currentSearchQuery);
+            updateCartDisplay();
+        });
+
+    </script>
+</body>
+</html>
